@@ -707,6 +707,29 @@
 }
 
 </style>
+<style id="leaderboard-layout">
+.ranking-dialog{width:min(650px,96vw)}
+.ranking-controls{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+.ranking-controls input{width:100px;min-height:44px;padding:8px;border:1px solid #bfa278;background:#fff9eb;border-radius:4px;text-transform:uppercase;font-size:16px}
+.ranking-controls button{margin-left:auto;min-height:44px}
+.ranking-scroll{overflow:auto;max-height:55svh;border:1px solid #ccb68b}
+.ranking-table{width:100%;border-collapse:collapse;font-size:16px;font-variant-numeric:tabular-nums}
+.ranking-table th{position:sticky;top:0;background:#e6d6b5;color:#5d4330}
+.ranking-table td,.ranking-table th{padding:12px 9px;border-bottom:1px solid #d4bf98;text-align:center}
+.ranking-table tr:nth-child(even){background:#f0e5cb}
+.ranking-table tbody tr:first-child{color:#a43f2c;font-weight:bold}
+#leaderboardStatus{font-size:12px;line-height:1.7;color:#715c41;margin:12px 0 0}
+.review-upload{margin:6px 0 10px;padding:8px 10px;background:#e5ead8;border:1px solid #adb792;border-radius:4px;color:#42593f;font-size:12px;line-height:1.7;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.review-upload button{min-height:36px;padding:5px 10px;font-size:12px;margin-left:auto}
+@media(max-width:600px) and (orientation:portrait){
+ .ranking-dialog{padding:17px 13px}
+ .ranking-controls{gap:7px;font-size:13px}
+ .ranking-controls button{font-size:13px;padding:8px}
+ .ranking-table{font-size:14px}
+ .ranking-table td,.ranking-table th{padding:11px 6px}
+}
+
+</style>
 </head>
 <body>
 <div class="app">
@@ -714,7 +737,7 @@
  <main class="main">
   <section class="scene" id="scene" aria-label="古風食店與顧客"><canvas id="art" width="480" height="560"></canvas><div class="scene-top"><div class="scene-badge" id="sceneRight">手作熱食<br>算對即上</div></div><div class="speech" id="speech" aria-live="polite">開張啦！算得掂，鑊氣自然夠！</div><div class="moodline" id="moodline"><span id="moodText">客官心情：笑瞇瞇</span><div class="moodbar"><i id="moodFill"></i></div></div><div class="scene-bottom"><span id="customerName">飯店老闆・氹掌櫃</span></div><div class="flash" id="flash"></div><button class="primary" id="phoneSceneContinue" type="button">開始答題 →</button></section>
   <section class="panel">
-   <div class="menu" id="menu"><h1>氹坊<br><span>小當家</span></h1><div class="menu-buttons"><button class="primary" id="reviewStart"><span class="button-label">溫習模式開始</span></button><button class="primary" id="start"><span class="button-label">開始遊戲</span><span class="button-arrow" aria-hidden="true">→</span></button><div class="menu-secondary-row"><button class="secondary" id="settingsMenu"><span class="button-label">設定</span></button><button class="secondary" id="leaderboardMenu" disabled title="排行榜即將推出"><span class="button-label">排行榜<small>即將推出</small></span></button></div><button class="secondary" id="exit"><span class="button-label">關閉遊戲</span></button></div></div>
+   <div class="menu" id="menu"><h1>氹坊<br><span>小當家</span></h1><div class="menu-buttons"><button class="primary" id="reviewStart"><span class="button-label">溫習模式開始</span></button><button class="primary" id="start"><span class="button-label">開始遊戲</span><span class="button-arrow" aria-hidden="true">→</span></button><div class="menu-secondary-row"><button class="secondary" id="settingsMenu"><span class="button-label">設定</span></button><button class="secondary" id="leaderboardMenu"><span class="button-label">排行榜</span></button></div><button class="secondary" id="exit"><span class="button-label">關閉遊戲</span></button></div></div>
    <div class="gamepanel hidden" id="game"><div class="hud"><div class="hearts" id="hearts" aria-label="剩餘5顆心">♥♥♥♥♥</div><div class="progress"><span id="progress">第1位 / 10位客官</span><span id="clock">00:00</span></div><div class="score">營業得分 <b id="score">0</b></div><div class="phone-moodline"><span id="phoneMoodText">客官心情：笑瞇瞇</span><div class="moodbar"><i id="phoneMoodFill"></i></div></div></div><div class="question" id="question"></div><div class="answer-zone"><div id="choices" class="choices hidden"></div><button class="primary hidden" id="multiSubmit">提交所選答案</button><div id="fill"><div class="inputrow"><span class="inputlabel">客官的答案</span><div class="numberinput" id="answerDisplay" role="group" aria-label="數學答案輸入"></div><span class="fine" id="unit"></span></div><div class="keypad" id="keypad"></div></div><div class="feedback" id="feedback" role="status"></div><div class="resolution hidden" id="resolution"></div></div></div>
    <div class="result-panel hidden" id="results"></div>
    <div class="menu hidden" id="closed"><div class="eyebrow">今日打烊</div><h1>收起算盤，<br><span>下次再來。</span></h1><p class="lead">遊戲已結束。你可以手動關閉此分頁，<br>或者再開張，接待下一桌客官。</p><button class="primary" id="reopen">返回主界面</button></div>
@@ -724,6 +747,7 @@
 <div class="overlay hidden" id="settings"><section class="dialog" role="dialog" aria-modal="true" aria-labelledby="settingsTitle"><div class="dialog-head"><h2 id="settingsTitle">食店設定</h2><button class="close" id="settingsClose" aria-label="關閉設定">×</button></div><div class="settings-grid" id="rules"><label class="field">營業模式<select id="mode"><option value="count">題數模式</option><option value="time">限時模式</option><option value="survival">生存模式</option></select></label><label class="field" id="countField">接待客官（1–30位）<input type="number" id="count" min="1" max="30" step="1" inputmode="numeric"></label><label class="field" id="timeField">營業時間<select id="minutes"><option value="3">3分鐘</option><option value="5">5分鐘</option><option value="10">10分鐘</option></select></label></div><p class="fine" id="settingNote">每題最多答兩次。等待只會變臉，答錯才可能被攻擊。</p><div class="section-label">食店聲音</div><div class="audio-row"><label for="musicVolume">音樂 <span id="musicValue" aria-live="polite"></span><small class="audio-desc">答題・過關・失敗</small></label><input id="musicVolume" type="range" min="0" max="100" step="1" value="35" aria-label="音樂音量"><label class="mute"><input type="checkbox" id="musicMute" checked>靜音</label></div><div class="audio-row"><label for="sfxVolume">音效 <span id="sfxValue" aria-live="polite"></span><small class="audio-desc">答對提示音</small></label><input id="sfxVolume" type="range" min="0" max="100" step="1" value="65" aria-label="音效音量"><label class="mute"><input type="checkbox" id="sfxMute" checked>靜音</label></div><p class="fine">局中設定、切換App或轉直向，仍會繼續計時。</p><button class="primary" id="settingsSave">收好設定</button></section></div>
 <div class="overlay hidden" id="questionImageDialog"><section class="dialog question-image-dialog" role="dialog" aria-modal="true" aria-labelledby="questionImageTitle"><div class="question-image-head"><h2 id="questionImageTitle">題目圖片</h2><button class="close" id="questionImageClose" aria-label="關閉題目圖片">×</button></div><div class="question-image-content"><img id="questionImagePreview" alt=""></div></section></div>
 <div class="overlay hidden" id="reviewEntryDialog"><section class="dialog review-entry-dialog" role="dialog" aria-modal="true" aria-labelledby="reviewEntryTitle"><div class="dialog-head"><h2 id="reviewEntryTitle">溫習模式</h2><button class="close" id="reviewEntryClose" type="button" aria-label="關閉溫習登記">×</button></div><p class="review-entry-info">題數模式 · 接待25位客官</p><form id="reviewEntryForm" novalidate autocomplete="off"><div class="review-entry-fields"><label class="field" for="reviewName">考號<input id="reviewName" type="text" maxlength="30" placeholder="請輸入考號" autocomplete="off" required></label><label class="field" for="reviewStudentId">學號<input id="reviewStudentId" type="text" minlength="5" maxlength="5" placeholder="例如：S2A01" autocapitalize="characters" spellcheck="false" autocomplete="off" pattern="S2[A-Za-z][0-9]{2}" required></label></div><p id="reviewEntryError" role="alert"></p><div class="review-entry-actions"><button class="secondary" id="reviewEntryCancel" type="button">取消</button><button class="primary" id="reviewEntrySubmit" type="submit">開始溫習</button></div></form></section></div>
+<div class="overlay hidden" id="leaderboardOverlay"><section class="dialog ranking-dialog" role="dialog" aria-modal="true" aria-labelledby="leaderboardTitle"><div class="dialog-head"><h2 id="leaderboardTitle">氹坊龍虎榜</h2><button class="close" id="leaderboardClose" aria-label="關閉排行榜">×</button></div><div class="ranking-controls"><label for="leaderboardClass">班別</label><input id="leaderboardClass" maxlength="3" placeholder="全部／S2A" autocomplete="off" autocapitalize="characters"><button class="secondary" id="leaderboardRefresh">重新整理</button></div><div class="ranking-scroll"><table class="ranking-table"><thead><tr><th>名次</th><th>學號</th><th>分數</th><th>用時</th></tr></thead><tbody id="leaderboardRows"></tbody></table></div><p id="leaderboardStatus" role="status"></p></section></div>
 <div class="rotate"><div class="tablet-rotate"><b>↻</b><h2>轉一轉，食店就開張</h2><p>請將 iPad 橫向放置。<br>若已開始營業，遊戲仍會繼續計時。</p></div><div class="phone-rotate"><b>↻</b><h2>手機直向，食店開張</h2><p>請將手機轉為直向遊玩。<br>營業中的計時仍會繼續。</p></div></div>
 <div class="toast hidden" id="toast" role="status"></div>
 <script>
@@ -836,7 +860,79 @@ function safeSave(){try{localStorage.setItem('math-inn-settings-v1',JSON.stringi
 function loadConfig(){try{const v=JSON.parse(localStorage.getItem('math-inn-settings-v1'));if(v&&typeof v==='object'){if(['count','time','survival'].includes(v.mode))config.mode=v.mode;if(Number.isInteger(v.count)&&v.count>=1)config.count=Math.min(v.count,maxQuestionCount());if([3,5,10].includes(v.minutes))config.minutes=v.minutes;for(const k of ['musicVolume','sfxVolume'])if(Number.isFinite(v[k]))config[k]=Math.max(0,Math.min(100,v[k]));if(v.audioDefaultsVersion===2)for(const k of ['musicMute','sfxMute'])if(typeof v[k]==='boolean')config[k]=v[k]}}catch{}config.musicMute=true;safeSave()}
 function toast(t){$('toast').textContent=t;show('toast',true);clearTimeout(toastTimer);toastTimer=setTimeout(()=>show('toast',false),4500)}
 function setScreen(s){screen=s;if(s!=='game')closeQuestionImage(false);const app=document.querySelector('.app');app.dataset.screen=s;if(s!=='game'){clearHitFeedback();app.classList.remove('answering-fill');phoneOrderPending=false;app.dataset.phoneStage='';}app.classList.toggle('playing',s==='game');app.classList.add('compact-header');for(const id of ['menu','game','results','closed'])show(id,id===s);show('moodline',s==='game');if(s==='menu'||s==='closed')showOwnerWelcome(s==='closed');$('scene').classList.toggle('failed-scene',!!(s==='results'&&run&&run.finished&&run.reason==='hearts'));audio.setMusic(s==='game'?'answer':s==='results'&&run?(run.reason==='hearts'?'lost':'win'):null)}
+const TF_ENDPOINT='https://jotzmebaakvtxlsqlosn.supabase.co/functions/v1/tam-fong-api';
+const TF_QUEUE_KEY='tf-review-pending-v1';
+function tfSeededRandom(seed){let a=seed>>>0;return ()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296}}
+async function tfRequest(data){
+ const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),15000);
+ try{
+  const res=await fetch(TF_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data),signal:controller.signal});
+  const result=await res.json();if(!res.ok)throw Error(result.error||'REQUEST_FAILED');return result;
+ }finally{clearTimeout(timeout)}
+}
+function tfRandomToken(){return [...crypto.getRandomValues(new Uint8Array(32))].map(v=>v.toString(16).padStart(2,'0')).join('')}
+async function createCloudReviewSession(player){
+ const id=typeof crypto.randomUUID==='function'?crypto.randomUUID():'10000000-1000-4000-8000-100000000000'.replace(/[018]/g,c=>(Number(c)^crypto.getRandomValues(new Uint8Array(1))[0]&15>>Number(c)/4).toString(16));
+ const token=tfRandomToken();
+ const result=await tfRequest({action:'start',id,token,exam:player.name,student:player.studentId});
+ if(result.version!=='tf-20261030-1')throw Error('VERSION_MISMATCH');
+ return {id,token,seed:result.seed};
+}
+let tfQueue=[];try{const v=JSON.parse(localStorage.getItem(TF_QUEUE_KEY)||'[]');if(Array.isArray(v))tfQueue=v.filter(x=>x&&x.action==='finish'&&typeof x.id==='string'&&Array.isArray(x.records))}catch{}
+let tfUploading=false,tfLastError='',tfStorageAvailable=true;
+function saveReviewQueue(){try{localStorage.setItem(TF_QUEUE_KEY,JSON.stringify(tfQueue));tfStorageAvailable=true}catch{tfStorageAvailable=false}}
+function renderUploadState(){
+ const status=$('reviewUploadText'),retry=$('reviewUploadRetry');
+ if(!status||!run||!run.reviewMode||!run.cloudSession)return;
+ const waiting=tfQueue.some(x=>x.id===run.cloudSession.id);
+ status.textContent=!waiting?'✓ 成績已上傳':tfUploading?'成績上傳中…':tfLastError==='INVALID_SESSION'||tfLastError==='INCOMPLETE_GAME'?'這局暫未能上傳，請重試或聯絡老師。':tfStorageAvailable?'尚未上傳，連線後會自動重試。':'尚未上傳，請保持此頁開啟並重試。';
+ retry.disabled=tfUploading;show('reviewUploadRetry',waiting);
+}
+function queueReviewResult(r){
+ if(!r.reviewMode||!r.cloudSession)return;
+ show('reviewUpload',true);
+ if(!r.cloudQueued){
+  const offset=v=>Math.max(0,Math.round(v-r.started));
+  const item={action:'finish',id:r.cloudSession.id,token:r.cloudSession.token,duration:offset(r.ended),records:r.records.map(x=>({id:x.q.id,start:offset(x.start),inputs:x.inputs.map(v=>Array.isArray(v)?v.slice():v),attemptTimes:(x.attemptTimes||[]).map(offset)}))};
+  if(!tfQueue.some(x=>x.id===item.id))tfQueue.push(item);
+  r.cloudQueued=true;saveReviewQueue();
+ }
+ $('reviewUploadRetry').onclick=()=>flushReviewQueue();renderUploadState();void flushReviewQueue();
+}
+async function flushReviewQueue(){
+ if(tfUploading||!tfQueue.length)return;
+ tfUploading=true;tfLastError='';renderUploadState();
+ try{
+  // One session is uploaded once; retries return the same stored result.
+  for(const item of [...tfQueue]){
+   await tfRequest(item);
+   tfQueue=tfQueue.filter(x=>x.id!==item.id);saveReviewQueue();
+  }
+ }catch(error){tfLastError=error.message||'NETWORK_ERROR'}
+ finally{tfUploading=false;renderUploadState()}
+}
+function tfTime(ms){const s=Math.floor(ms/1000);return (Math.floor(s/60)+'').padStart(2,'0')+':'+(s%60+'').padStart(2,'0')}
+let tfRankRequest=0,tfRankOrigin=null;
+function closeLeaderboard(){tfRankRequest++;show('leaderboardOverlay',false);if(tfRankOrigin&&tfRankOrigin.isConnected)tfRankOrigin.focus();tfRankOrigin=null}
+function openLeaderboard(){audio.unlock();tfRankOrigin=document.activeElement;show('leaderboardOverlay',true);$('leaderboardClose').focus();void loadLeaderboard()}
+async function loadLeaderboard(){
+ const cls=$('leaderboardClass').value.trim().toUpperCase();$('leaderboardClass').value=cls;
+ if(cls&&!/^S2[A-Z]$/.test(cls)){$('leaderboardStatus').textContent='班別請輸入S2A等格式，留空顯示全部。';return}
+ const request=++tfRankRequest;$('leaderboardStatus').textContent='正在載入排行榜…';$('leaderboardRows').textContent='';
+ try{
+  const rows=await tfRequest({action:'leaderboard',class:cls});if(request!==tfRankRequest)return;
+  rows.forEach((r,i)=>{const tr=document.createElement('tr');for(const text of [i+1,r.student_id,r.score,tfTime(r.elapsed_ms)]){const td=document.createElement('td');td.textContent=text;tr.append(td)}$('leaderboardRows').append(tr)});
+  $('leaderboardStatus').textContent=rows.length?'每個學號取最高分；同分以用時較短者排前。':'還未有成績，來挑戰第一名！';
+ }catch{$('leaderboardStatus').textContent='暫時無法載入，請連線後按「重新整理」。'}
+}
+function initReviewCloud(){
+ $('leaderboardMenu').onclick=openLeaderboard;$('leaderboardClose').onclick=closeLeaderboard;$('leaderboardRefresh').onclick=()=>loadLeaderboard();
+ $('leaderboardClass').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();void loadLeaderboard()}};
+ window.addEventListener('online',()=>flushReviewQueue());setInterval(()=>flushReviewQueue(),30000);void flushReviewQueue();
+}
+
 let reviewEntryOrigin=null;
+let reviewEntryGeneration=0;
 function validateReviewPlayer(name,studentId){
  name=String(name||'').trim();studentId=String(studentId||'').trim().toUpperCase();
  if(!name||name.length>30)return {error:'請填寫考號（最多30個字元）。',field:'reviewName'};
@@ -844,29 +940,42 @@ function validateReviewPlayer(name,studentId){
  return {player:{name,studentId}};
 }
 function openReviewEntry(){
+ reviewEntryGeneration++;
  audio.unlock();reviewEntryOrigin=document.activeElement;
  $('reviewName').value='';$('reviewStudentId').value='';$('reviewEntryError').textContent='';$('reviewEntrySubmit').disabled=false;
- show('reviewEntryDialog',true);$('reviewName').focus();
+ $('reviewEntrySubmit').textContent='開始溫習';show('reviewEntryDialog',true);$('reviewName').focus();
 }
 function closeReviewEntry(restoreFocus=true){
+ reviewEntryGeneration++;
  show('reviewEntryDialog',false);
  $('reviewName').value='';$('reviewStudentId').value='';$('reviewEntryError').textContent='';
  if(restoreFocus&&reviewEntryOrigin&&reviewEntryOrigin.isConnected)reviewEntryOrigin.focus();
  reviewEntryOrigin=null;
 }
-function beginReviewMode(){
+async function beginReviewMode(){
  if($('reviewEntryDialog').classList.contains('hidden'))return;
+ if($('reviewEntrySubmit').disabled)return;
  const result=validateReviewPlayer($('reviewName').value,$('reviewStudentId').value);
  if(result.error){$('reviewEntryError').textContent=result.error;$(result.field).focus();return}
  $('reviewEntrySubmit').disabled=true;
- startGame({reviewMode:true,player:result.player});
+ $('reviewEntrySubmit').textContent='正在登記…';
+ const generation=++reviewEntryGeneration;
+ try{
+  const cloudSession=await createCloudReviewSession(result.player);
+  if(generation!==reviewEntryGeneration||$('reviewEntryDialog').classList.contains('hidden'))return;
+  startGame({reviewMode:true,player:result.player,cloudSession});
+ }catch(error){
+  if(generation!==reviewEntryGeneration)return;
+  $('reviewEntryError').textContent=error.message==='TOO_MANY_STARTS'?'開局太頻密，請稍後再試。':'未能連線登記，請檢查網絡後重試。';
+  $('reviewEntrySubmit').disabled=false;$('reviewEntrySubmit').textContent='開始溫習';
+ }
 }
 function restartCurrentGame(){
  const player=run&&run.reviewMode?{...run.player}:null;
- if(player)startGame({reviewMode:true,player});else startGame();
+ if(player){openReviewEntry();$('reviewName').value=player.name;$('reviewStudentId').value=player.studentId;void beginReviewMode()}else startGame();
 }
 
-function startGame(options={}){audio.unlock();show('settings',false);closeReviewEntry(false);const reviewMode=options.reviewMode===true;const rules=reviewMode?{...config,mode:'count',count:25}:config;run=makeRun(rules);run.reviewMode=reviewMode;if(reviewMode)run.player={...options.player};setScreen('game');renderQuestion();audio.sfx('start')}
+function startGame(options={}){audio.unlock();show('settings',false);closeReviewEntry(false);const reviewMode=options.reviewMode===true;const rules=reviewMode?{...config,mode:'count',count:25}:config;run=makeRun(rules,Date.now(),options.cloudSession?tfSeededRandom(options.cloudSession.seed):Math.random);run.reviewMode=reviewMode;if(options.cloudSession){run.cloudSession={...options.cloudSession};run.cloudAttackRng=tfSeededRandom(options.cloudSession.seed^0x51f15e);}if(reviewMode)run.player={...options.player};setScreen('game');renderQuestion();audio.sfx('start')}
 function resetInput(){input={fraction:false,negative:false,n:'',d:'',active:'n'};renderInput()}
 let questionImageOrigin=null;
 function openQuestionImage(img){
@@ -974,7 +1083,7 @@ function setAnswerButtons(disabled){
  $('multiSubmit').disabled=disabled||choiceSelection.size===0;
 }
 
-function submit(value){if(!run||locked||run.phase!=='answer'||phoneAnswerBlocked())return;audio.unlock();if(syncTime(run,Date.now())){renderResults();return}const q=run.records.at(-1).q;if(!validResponse(q,value)){const msg=q.type==='multi'?'請至少選擇一個選項，再提交答案。':q.type==='choice'?'請點選一個選項。':input.fraction&&parseAnswer(input.d)&&parseAnswer(input.d).n===0n?'分母不能為0，請改一改。':'請先填好完整答案；小數點後也要有數字。';$('feedback').textContent=msg;$('feedback').className='feedback bad';return}locked=true;setAnswerButtons(true);const event=judge(run,value);const rec=run.records.at(-1);if(event.ignored)return;clearHitFeedback();if(event.correct){$('speech').textContent=customerDialogue('good');audio.sfx('correct');artEffect={type:'serve',start:Date.now()};$('feedback').textContent=`${dishNames[rec.dishId]}出餐！${rec.multiplier===2?'雙倍獎分！':''}＋${rec.points} 分`;$('feedback').className='feedback good'}else{$('speech').textContent=customerDialogue(event.attack?'attack':'bad');audio.sfx(event.attack?'attack':'wrong');if(event.attack){artEffect={type:'attack',start:Date.now()};$('scene').classList.remove('shake');void $('scene').offsetWidth;$('scene').classList.add('shake');$('flash').className='flash hit'}else artEffect={type:'grumble',start:Date.now()};$('feedback').textContent=event.retry?'再想想，還有一次機會。':'這題先記下，下次就會了。';$('feedback').className='feedback bad'}renderCustomerMood();if(isPhonePortrait())setPhoneStage('reaction');renderHUD();if(event.finished){renderResults();return}if(event.retry){$('feedback').innerHTML=`${event.attack?'受到攻擊，扣'+event.damage+'心。':'客官抱怨，沒有扣心。'}還有一次機會。提示：${rec.q.hint}`;lockUntil=Date.now()+1100}else{document.querySelector('.app').classList.remove('answering-fill');show('choices',false);show('fill',false);show('resolution',true);$('resolution').innerHTML=`<h3>${event.correct?'✓ '+dishNames[rec.dishId]+'已出餐':'這道題的解法'}</h3>${!event.correct&&event.attack?'<p>受到攻擊，扣'+event.damage+'心。</p>':''}<p>答案：${answerHTML(rec.q)}</p><p>${rec.q.explanation}</p><button class="primary" id="next">${run.index+1>=run.deck.length?'查看營業結算':'接待下一位 →'}</button>`;$('resolution').scrollTop=0;$('resolution').scrollLeft=0;$('next').onclick=()=>{if(syncTime(run,Date.now())){renderResults();return}$('next').disabled=true;departureAt=Date.now();setTimeout(()=>{if(!run||screen!=='game')return;if(advance(run)){renderQuestion()}else renderResults()},380)}}}
+function submit(value){if(!run||locked||run.phase!=='answer'||phoneAnswerBlocked())return;audio.unlock();if(syncTime(run,Date.now())){renderResults();return}const q=run.records.at(-1).q;if(!validResponse(q,value)){const msg=q.type==='multi'?'請至少選擇一個選項，再提交答案。':q.type==='choice'?'請點選一個選項。':input.fraction&&parseAnswer(input.d)&&parseAnswer(input.d).n===0n?'分母不能為0，請改一改。':'請先填好完整答案；小數點後也要有數字。';$('feedback').textContent=msg;$('feedback').className='feedback bad';return}locked=true;setAnswerButtons(true);const attemptAt=Date.now(),attemptRec=run.records.at(-1);(attemptRec.attemptTimes||(attemptRec.attemptTimes=[])).push(attemptAt);const event=judge(run,value,attemptAt,run.cloudAttackRng||Math.random);const rec=run.records.at(-1);if(event.ignored)return;clearHitFeedback();if(event.correct){$('speech').textContent=customerDialogue('good');audio.sfx('correct');artEffect={type:'serve',start:Date.now()};$('feedback').textContent=`${dishNames[rec.dishId]}出餐！${rec.multiplier===2?'雙倍獎分！':''}＋${rec.points} 分`;$('feedback').className='feedback good'}else{$('speech').textContent=customerDialogue(event.attack?'attack':'bad');audio.sfx(event.attack?'attack':'wrong');if(event.attack){artEffect={type:'attack',start:Date.now()};$('scene').classList.remove('shake');void $('scene').offsetWidth;$('scene').classList.add('shake');$('flash').className='flash hit'}else artEffect={type:'grumble',start:Date.now()};$('feedback').textContent=event.retry?'再想想，還有一次機會。':'這題先記下，下次就會了。';$('feedback').className='feedback bad'}renderCustomerMood();if(isPhonePortrait())setPhoneStage('reaction');renderHUD();if(event.finished){renderResults();return}if(event.retry){$('feedback').innerHTML=`${event.attack?'受到攻擊，扣'+event.damage+'心。':'客官抱怨，沒有扣心。'}還有一次機會。提示：${rec.q.hint}`;lockUntil=Date.now()+1100}else{document.querySelector('.app').classList.remove('answering-fill');show('choices',false);show('fill',false);show('resolution',true);$('resolution').innerHTML=`<h3>${event.correct?'✓ '+dishNames[rec.dishId]+'已出餐':'這道題的解法'}</h3>${!event.correct&&event.attack?'<p>受到攻擊，扣'+event.damage+'心。</p>':''}<p>答案：${answerHTML(rec.q)}</p><p>${rec.q.explanation}</p><button class="primary" id="next">${run.index+1>=run.deck.length?'查看營業結算':'接待下一位 →'}</button>`;$('resolution').scrollTop=0;$('resolution').scrollLeft=0;$('next').onclick=()=>{if(syncTime(run,Date.now())){renderResults();return}$('next').disabled=true;departureAt=Date.now();setTimeout(()=>{if(!run||screen!=='game')return;if(advance(run)){renderQuestion()}else renderResults()},380)}}}
 function renderHUD(){if(!run)return;$('hearts').innerHTML='♥'.repeat(run.hp)+`<span class="empty">${'♡'.repeat(5-run.hp)}</span>`;$('hearts').setAttribute('aria-label',`剩餘${run.hp}顆心`);$('score').textContent=run.score}
 function clockText(ms){const s=Math.max(0,Math.ceil(ms/1000));return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`}
 function customerMood(now=Date.now()){
@@ -996,7 +1105,7 @@ function renderCustomerMood(now=Date.now()){
 }
 
 function tick(){if(run&&!run.finished&&screen==='game'){const now=Date.now();if(syncTime(run,now)){renderResults();return}const rec=run.records.at(-1);renderCustomerMood(now);$('clock').textContent=run.deadline?'餘 '+clockText(run.deadline-now):'用時 '+clockText(now-run.started);$('sceneRight').innerHTML=rec.multiplier===2?'隱藏客官 · 得分 ×2<br>攻擊扣2心':rec.status==='pending'?`第 ${run.index+1} 位客官<br>第 ${rec.tries+1} 次作答`:'本題已結束<br>客官收好答案';if(lockUntil&&now>=lockUntil){lockUntil=0;locked=false;$('phoneSceneContinue').disabled=false;setAnswerButtons(false);if(rec.q.type!=='multi')$('choices').querySelectorAll('.selected').forEach(b=>b.classList.remove('selected'))}}}
-function renderResults(){if(screen==='results')return;show('settings',false);setScreen('results');const records=run.records,n=records.length,first=records.filter(r=>r.status==='first').length,served=records.filter(r=>['first','second'].includes(r.status)).length;const wrong=records.filter(r=>r.status!=='first');const title={complete:'漂亮收工！',time:'營業時間到！',hearts:'掌櫃，先歇一歇！'}[run.reason];$('speech').textContent=run.reason==='hearts'?'包子太熱情？下回把答案算回來！':'算盤收好，今天的努力都有記下。';$('results').innerHTML=`<div class="result-body"><div class="eyebrow">本日食店成績單</div><h2>${title}</h2><div class="result-player hidden" id="reviewPlayer"></div><div class="fine">${{count:'題數',time:'限時',survival:'生存'}[run.config.mode]}模式 · 已出示 ${n} 題</div><div class="stats"><div class="stat">營業總分<b>${run.score}</b></div><div class="stat">成功出餐<b>${served}<small> / ${n}</small></b></div><div class="stat">首次答對率<b>${Math.round(first/n*100)}%</b></div><div class="stat">兩次內答對率<b>${Math.round(served/n*100)}%</b></div></div><div class="fine">正確率以已出示題目為分母。首次答錯、重答答對及未完成題目均可回顧。</div><div class="review" id="review"></div></div><div class="result-actions"><button class="secondary" id="home">主界面</button><button class="primary" id="again">再開一局 →</button></div>`;if(run.reviewMode&&run.player){show('reviewPlayer',true);$('reviewPlayer').textContent='溫習模式 · 考號：'+run.player.name+' · 學號：'+run.player.studentId}if(!wrong.length)$('review').innerHTML='<p class="lead">全數首次答對！客官排隊送上大拇指。<br>換個難度，再來挑戰吧。</p>';wrong.forEach((r,i)=>{const details=document.createElement('details');details.innerHTML=`<summary>${i+1}. ${r.customerKind>=10?customers[r.customerKind].name+' · 雙倍客官 · ':''}${sourceLabel(r.q)} · ${{second:'重答答對',wrong:'未答對',unfinished:'未完成'}[r.status]||'待回顧'}</summary><div class="review-question">${r.q.text}</div><p>你的作答：${r.inputs.length?r.inputs.map(v=>answerHTML(r.q,v)).join(' → '):'尚未提交'}</p><p>正確答案：${answerHTML(r.q)}</p><p>${r.q.explanation}</p>`;$('review').append(details)});$('home').onclick=goHome;$('again').onclick=restartCurrentGame;wireQuestionImages($('review'));renderHUD()}
+function renderResults(){if(screen==='results')return;show('settings',false);setScreen('results');const records=run.records,n=records.length,first=records.filter(r=>r.status==='first').length,served=records.filter(r=>['first','second'].includes(r.status)).length;const wrong=records.filter(r=>r.status!=='first');const title={complete:'漂亮收工！',time:'營業時間到！',hearts:'掌櫃，先歇一歇！'}[run.reason];$('speech').textContent=run.reason==='hearts'?'包子太熱情？下回把答案算回來！':'算盤收好，今天的努力都有記下。';$('results').innerHTML=`<div class="result-body"><div class="eyebrow">本日食店成績單</div><h2>${title}</h2><div class="result-player hidden" id="reviewPlayer"></div><div class="review-upload hidden" id="reviewUpload"><span id="reviewUploadText"></span><button class="secondary" id="reviewUploadRetry">重試上傳</button></div><div class="fine">${{count:'題數',time:'限時',survival:'生存'}[run.config.mode]}模式 · 已出示 ${n} 題</div><div class="stats"><div class="stat">營業總分<b>${run.score}</b></div><div class="stat">成功出餐<b>${served}<small> / ${n}</small></b></div><div class="stat">首次答對率<b>${Math.round(first/n*100)}%</b></div><div class="stat">兩次內答對率<b>${Math.round(served/n*100)}%</b></div></div><div class="fine">正確率以已出示題目為分母。首次答錯、重答答對及未完成題目均可回顧。</div><div class="review" id="review"></div></div><div class="result-actions"><button class="secondary" id="home">主界面</button><button class="primary" id="again">再開一局 →</button></div>`;if(run.reviewMode&&run.player){show('reviewPlayer',true);$('reviewPlayer').textContent='溫習模式 · 考號：'+run.player.name+' · 學號：'+run.player.studentId}if(!wrong.length)$('review').innerHTML='<p class="lead">全數首次答對！客官排隊送上大拇指。<br>換個難度，再來挑戰吧。</p>';wrong.forEach((r,i)=>{const details=document.createElement('details');details.innerHTML=`<summary>${i+1}. ${r.customerKind>=10?customers[r.customerKind].name+' · 雙倍客官 · ':''}${sourceLabel(r.q)} · ${{second:'重答答對',wrong:'未答對',unfinished:'未完成'}[r.status]||'待回顧'}</summary><div class="review-question">${r.q.text}</div><p>你的作答：${r.inputs.length?r.inputs.map(v=>answerHTML(r.q,v)).join(' → '):'尚未提交'}</p><p>正確答案：${answerHTML(r.q)}</p><p>${r.q.explanation}</p>`;$('review').append(details)});$('home').onclick=goHome;$('again').onclick=restartCurrentGame;wireQuestionImages($('review'));renderHUD();queueReviewResult(run)}
 function goHome(){run=null;artEffect=null;arrivalAt=0;departureAt=0;$('scene').classList.remove('hidden-visitor');$('sceneRight').classList.remove('hidden-guest');setScreen('menu')}
 function openSettings(){audio.unlock();settingsOrigin=document.activeElement;const active=!!(run&&!run.finished);const rules=active?run.config:config;for(const k of ['mode','count','minutes']){$(k).value=rules[k];$(k).disabled=active}$('settingNote').textContent=active?'本局持續計時；營業規則請返回主界面後調整。':'每題最多答兩次。等待只會變臉，答錯才可能被攻擊。';updateModeFields();for(const k of ['musicVolume','sfxVolume'])$(k).value=config[k];for(const k of ['musicMute','sfxMute'])$(k).checked=config[k];updateAudioLabels();show('settings',true);$('settingsClose').focus()}
 function updateModeFields(){show('countField',$('mode').value==='count');show('timeField',$('mode').value==='time')}
@@ -1149,7 +1258,7 @@ function drawScene(t){
 }
 function animate(t){if(!document.hidden&&(!lastFrame||t-lastFrame>=45)){drawScene(t);lastFrame=t}requestAnimationFrame(animate)}
 function init(){loadConfig();artCanvas=$('art');ctx=artCanvas.getContext('2d');ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality="high";loadArt();const keys=[['7','7'],['8','8'],['9','9'],['back','⌫'],['4','4'],['5','5'],['6','6'],['clear','清空'],['1','1'],['2','2'],['3','3'],['fraction','分數'],['sign','±'],['0','0'],['.','.'],['switch','分子 ↕ 分母']];for(const [key,label]of keys){const b=document.createElement('button');b.className='key'+(['back','clear','fraction','switch'].includes(key)?' tool':'');b.textContent=label;b.setAttribute('aria-label',{back:'刪除一個字元',sign:'切換正負號',fraction:'切換分數輸入',switch:'切換分子分母'}[key]||label);b.onclick=()=>onKey(key);$('keypad').append(b)}const submitB=document.createElement('button');submitB.className='key submit';submitB.style.gridColumn='1 / -1';submitB.textContent='提交答案 →';submitB.onclick=()=>onKey('submit');$('keypad').append(submitB);
- $('scene').addEventListener('animationend',e=>{if(e.target===$('scene')&&e.animationName==='shake')$('scene').classList.remove('shake')});$('flash').addEventListener('animationend',e=>{if(e.target===$('flash'))$('flash').classList.remove('hit','flour')});$('phoneSceneContinue').onclick=continuePhoneScene;window.addEventListener('resize',syncPhoneOrientation);$('reviewStart').onclick=openReviewEntry;$('reviewEntryClose').onclick=()=>closeReviewEntry();$('reviewEntryCancel').onclick=()=>closeReviewEntry();$('reviewEntryForm').onsubmit=e=>{e.preventDefault();beginReviewMode()};$('questionImageClose').onclick=()=>closeQuestionImage();$('questionImageDialog').onclick=e=>{if(e.target===$('questionImageDialog'))closeQuestionImage()};$('start').onclick=startGame;for(const id of ['settingsTop','settingsMenu'])$(id).onclick=openSettings;$('settingsClose').onclick=closeSettings;$('settingsSave').onclick=closeSettings;$('mode').onchange=updateModeFields;for(const k of ['music','sfx']){ $(k+'Volume').oninput=e=>{config[k+'Volume']=Number(e.target.value);updateAudioLabels();audio.syncSettings();safeSave()};$(k+'Mute').onchange=e=>{config[k+'Mute']=e.target.checked;audio.syncSettings();safeSave()}}$('fullscreen').onclick=async()=>{audio.unlock();try{if(document.fullscreenElement){await document.exitFullscreen()}else if(document.documentElement.requestFullscreen){await document.documentElement.requestFullscreen()}else if(document.documentElement.webkitRequestFullscreen){document.documentElement.webkitRequestFullscreen()}else toast('此瀏覽器未提供全屏；可收起工具列，以橫向畫面遊玩。')}catch{toast('瀏覽器未允許全屏，仍可直接橫向遊玩。')}};$('exit').onclick=()=>{setScreen('closed');try{window.close()}catch{}};$('reopen').onclick=goHome;document.addEventListener('pointerdown',()=>audio.unlock(),{once:true});document.addEventListener('visibilitychange',()=>{tick();if(!document.hidden&&audio.tracks)audio.unlock()});document.addEventListener('keydown',e=>{if(!$('reviewEntryDialog').classList.contains('hidden')){if(e.key==='Escape')closeReviewEntry();if(e.key==='Tab'){const fields=[$('reviewEntryClose'),$('reviewName'),$('reviewStudentId'),$('reviewEntryCancel'),$('reviewEntrySubmit')];if(e.shiftKey&&document.activeElement===fields[0]){e.preventDefault();fields.at(-1).focus()}else if(!e.shiftKey&&document.activeElement===fields.at(-1)){e.preventDefault();fields[0].focus()}}return}if(!$('questionImageDialog').classList.contains('hidden')){if(e.key==='Escape')closeQuestionImage();if(e.key==='Tab'){e.preventDefault();$('questionImageClose').focus()}return}if(!$('settings').classList.contains('hidden')){if(e.key==='Escape')closeSettings();if(e.key==='Tab'){const all=[...$('settings').querySelectorAll('button,input,select')].filter(el=>!el.disabled&&!el.closest('.hidden'));if(e.shiftKey&&document.activeElement===all[0]){e.preventDefault();all.at(-1).focus()}else if(!e.shiftKey&&document.activeElement===all.at(-1)){e.preventDefault();all[0].focus()}}return}if(screen!=='game'||run.phase!=='answer'||run.records.at(-1).q.type!=='fill')return;const map={Enter:'submit',Backspace:'back',Delete:'clear','-':'sign','/':'fraction',Tab:'switch'};if(/^\d$/.test(e.key)||e.key==='.'||map[e.key]){e.preventDefault();onKey(map[e.key]||e.key)}});setScreen('menu');setInterval(tick,100);requestAnimationFrame(animate)}
+ $('scene').addEventListener('animationend',e=>{if(e.target===$('scene')&&e.animationName==='shake')$('scene').classList.remove('shake')});$('flash').addEventListener('animationend',e=>{if(e.target===$('flash'))$('flash').classList.remove('hit','flour')});$('phoneSceneContinue').onclick=continuePhoneScene;window.addEventListener('resize',syncPhoneOrientation);$('reviewStart').onclick=openReviewEntry;$('reviewEntryClose').onclick=()=>closeReviewEntry();$('reviewEntryCancel').onclick=()=>closeReviewEntry();$('reviewEntryForm').onsubmit=e=>{e.preventDefault();beginReviewMode()};$('questionImageClose').onclick=()=>closeQuestionImage();$('questionImageDialog').onclick=e=>{if(e.target===$('questionImageDialog'))closeQuestionImage()};$('start').onclick=startGame;for(const id of ['settingsTop','settingsMenu'])$(id).onclick=openSettings;$('settingsClose').onclick=closeSettings;$('settingsSave').onclick=closeSettings;$('mode').onchange=updateModeFields;for(const k of ['music','sfx']){ $(k+'Volume').oninput=e=>{config[k+'Volume']=Number(e.target.value);updateAudioLabels();audio.syncSettings();safeSave()};$(k+'Mute').onchange=e=>{config[k+'Mute']=e.target.checked;audio.syncSettings();safeSave()}}$('fullscreen').onclick=async()=>{audio.unlock();try{if(document.fullscreenElement){await document.exitFullscreen()}else if(document.documentElement.requestFullscreen){await document.documentElement.requestFullscreen()}else if(document.documentElement.webkitRequestFullscreen){document.documentElement.webkitRequestFullscreen()}else toast('此瀏覽器未提供全屏；可收起工具列，以橫向畫面遊玩。')}catch{toast('瀏覽器未允許全屏，仍可直接橫向遊玩。')}};$('exit').onclick=()=>{setScreen('closed');try{window.close()}catch{}};$('reopen').onclick=goHome;document.addEventListener('pointerdown',()=>audio.unlock(),{once:true});document.addEventListener('visibilitychange',()=>{tick();if(!document.hidden&&audio.tracks)audio.unlock()});document.addEventListener('keydown',e=>{if(!$('reviewEntryDialog').classList.contains('hidden')){if(e.key==='Escape')closeReviewEntry();if(e.key==='Tab'){const fields=[$('reviewEntryClose'),$('reviewName'),$('reviewStudentId'),$('reviewEntryCancel'),$('reviewEntrySubmit')];if(e.shiftKey&&document.activeElement===fields[0]){e.preventDefault();fields.at(-1).focus()}else if(!e.shiftKey&&document.activeElement===fields.at(-1)){e.preventDefault();fields[0].focus()}}return}if(!$('leaderboardOverlay').classList.contains('hidden')){if(e.key==='Escape')closeLeaderboard();if(e.key==='Tab'){const fields=[$('leaderboardClose'),$('leaderboardClass'),$('leaderboardRefresh')];if(e.shiftKey&&document.activeElement===fields[0]){e.preventDefault();fields.at(-1).focus()}else if(!e.shiftKey&&document.activeElement===fields.at(-1)){e.preventDefault();fields[0].focus()}}return}if(!$('questionImageDialog').classList.contains('hidden')){if(e.key==='Escape')closeQuestionImage();if(e.key==='Tab'){e.preventDefault();$('questionImageClose').focus()}return}if(!$('settings').classList.contains('hidden')){if(e.key==='Escape')closeSettings();if(e.key==='Tab'){const all=[...$('settings').querySelectorAll('button,input,select')].filter(el=>!el.disabled&&!el.closest('.hidden'));if(e.shiftKey&&document.activeElement===all[0]){e.preventDefault();all.at(-1).focus()}else if(!e.shiftKey&&document.activeElement===all.at(-1)){e.preventDefault();all[0].focus()}}return}if(screen!=='game'||run.phase!=='answer'||run.records.at(-1).q.type!=='fill')return;const map={Enter:'submit',Backspace:'back',Delete:'clear','-':'sign','/':'fraction',Tab:'switch'};if(/^\d$/.test(e.key)||e.key==='.'||map[e.key]){e.preventDefault();onKey(map[e.key]||e.key)}});initReviewCloud();setScreen('menu');setInterval(tick,100);requestAnimationFrame(animate)}
 if(typeof document!=='undefined')init();
 </script>
 </body>
