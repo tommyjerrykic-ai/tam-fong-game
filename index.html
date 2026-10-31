@@ -891,13 +891,181 @@ customers.push(
 );
 const attackStyles=['bun','fan','scallion','bun','coin','pancake','talisman','pepper','mallet','ribbon','coin','fan','talisman'];
 const sharedTeacherQuestions=["咁都比你抽中我,快啲出餐","你抽中我地,可以雙倍分數","大測努力啦,爭取上龍虎榜","唔好驚訝,我係你熟悉的人","唔識就識下書!","做曬功課未?"];
-function customerDialogue(event,rng=Math.random,customer=currentCustomer()){
- const key=customer.hidden&&event==='attack'?'bad':event;
- const own=customer[key]??customer.bad??'';
- let pool=Array.isArray(own)?own.slice():[own];
- if(customer.hidden&&event==='order')pool=pool.concat(sharedTeacherQuestions);
- return pool[Math.min(pool.length-1,Math.floor(rng()*pool.length))]||'';
+// Character-specific comedy; these lines never change score, health or timers.
+const CUSTOMER_CHAT={
+ 0:{
+  order:['我個肚已經打緊鼓，掌櫃準備接招！','牛肉麵要熱，答案要啱，蔥花要多！'],
+  good:['答案啱晒！我個肚都拍手呀！','好食兼好計，我決定連湯都飲埋！'],
+  bad:['我啱啱吞咗啖口水，唔係吞咗個答案呀！','呢個數唔對路，連牛肉都擰晒頭！'],
+  attack:['包子速遞！收件人：掌櫃個額頭！','我個肚話唔服，派隻包子出嚟交涉！'],
+  fastGood:['我連筷子都未拆，你就算好喇！','咁快！我個肚都追唔切你個腦！'],
+  slowGood:['等到碗麵都想自己行過嚟，好彩你答啱！','我個肚打完一首鼓，終於開得飯！'],
+  retryGood:['翻一翻個腦，答案就熱返晒！','頭啖試味，第二啖就啱晒！'],
+  nearMiss:['差少少！答案已經聞到牛肉香！','就到喇，睇清楚最後嗰啖數！'],
+  finalWrong:['今次先記低，唔好同答案一齊落肚！','麵可以再煮，呢題睇完解法再嚟過！']
+ },
+ 1:{
+  order:['小生帶咗扇，冇帶答案，勞煩掌櫃！','點心一籠，算術一題，風雅又飽肚。'],
+  good:['妙極！小生要為這答案搖足三下扇！','這答案有文采，連墨水都想添飯！'],
+  bad:['小生扇到手軟，這個數仍然唔通！','這答案一落筆，墨水都想縮返入樽！'],
+  attack:['借一陣清風，吹走你的糊塗！','小生出扇！只吹算錯嗰一格！'],
+  fastGood:['小生才展扇，答案已上桌！','筆墨未乾，掌櫃已經交卷，妙！'],
+  slowGood:['小生把扇搖成風車，終於等到佳答！','等到詩都作完三首，好彩此數終通！'],
+  retryGood:['改得妙！文章不厭改，答案亦如是！','此番重算，連扇上的字都笑了！'],
+  nearMiss:['只差一筆，莫讓答案走錯字行！','已近正解，再細看最後一步。'],
+  finalWrong:['把解法抄入心裏，下回再來對數！','此題先收卷，讀懂解法又是一位好漢。']
+ },
+ 2:{
+  order:['我把劍留咗喺屋企，今日只帶大蔥！','一道算術關，一碟江湖菜，請！'],
+  good:['算得乾脆！大蔥自願收鞘！','好！這答案，比我把蔥還要直！'],
+  bad:['蔥已出鞘一半，掌櫃再諗清楚！','這條數彎過蔥尾，江湖不太認同！'],
+  attack:['大蔥劍法第一式：醒一醒腦！','蔥到！唔好驚，今日冇切辣椒！'],
+  fastGood:['快過拔蔥！在下甘拜下風！','我連起手式都未擺好，你就過關！'],
+  slowGood:['等到大蔥都長高咗，好彩你算啱！','我把蔥練完一套劍法，終於食得！'],
+  retryGood:['跌一步再企穩，這才是江湖功夫！','回身一算，正中答案！'],
+  nearMiss:['劍尖已到，就差最後半寸！','差一步就過關，再睇清個數！'],
+  finalWrong:['把解法練熟，下次再來闖關！','此關先記低，江湖大把機會再戰！']
+ },
+ 3:{
+  order:['婆婆眼鏡抹乾淨喇，等睇你表演！','功課做咗未？先幫婆婆算呢題。'],
+  good:['叻仔！婆婆笑到眼鏡都起霧！','算得好，婆婆替你留個最大嘅包！'],
+  bad:['婆婆眼鏡冇花，係個答案有啲花！','個數唔啱，婆婆個算盤已經嘆氣。'],
+  attack:['婆婆牌醒腦包，熱辣辣送到！','小心接包！婆婆隻手仲好靈活！'],
+  fastGood:['婆婆仲未戴好眼鏡，你就答啱喇！','咁快！婆婆讚你都讚唔切！'],
+  slowGood:['婆婆件衫都織多兩行，終於等到喇！','等到眼鏡抹咗三次，好彩答案啱！'],
+  retryGood:['知錯肯改，婆婆最鍾意呢種叻仔！','再諗一次就識，婆婆冇睇錯你！'],
+  nearMiss:['就差少少，婆婆替你扶住個尾數！','接近喇，唔好喺最後一步跣腳！'],
+  finalWrong:['睇清解法再學，婆婆下次再考你！','呢題先記低，學識咗再嚟食包。']
+ },
+ 4:{
+  order:['金算盤已開檔，就差掌櫃個答案！','菜價算清楚，蔥花可唔可以送多兩粒？'],
+  good:['好！口碑入帳，掌櫃今日大賺！','我啲算盤珠都排隊畀你拍手！'],
+  bad:['呢條數一錯，我啲算盤珠走晒佬！','收支唔平衡，連銅錢都皺眉！'],
+  attack:['銅錢轉個圈，腦筋都轉快啲！','算盤珠出巡！掌櫃留神！'],
+  fastGood:['珠都未撥，你已經埋好條數！','咁快手！我想請你幫手睇帳簿！'],
+  slowGood:['我等到算盤珠都瞓着，好彩有正解！','等到帳簿翻完兩本，終於開飯！'],
+  retryGood:['改正一個數，賺返一份本事！','這次收支平衡，算盤珠返晒嚟！'],
+  nearMiss:['差一粒珠就啱，再對一對帳！','快埋到數喇，睇清最後一步！'],
+  finalWrong:['把錯數記入學習帳，下次賺返嚟！','今日先查解法，下次再結清呢條數。']
+ },
+ 5:{
+  order:['煎餅要脆，查案要快，答案要準！','巡完街就巡算盤，掌櫃請答題！'],
+  good:['查明答案正確！准你光榮出餐！','證據充分，這碟菜可以放行！'],
+  bad:['此答案行蹤可疑，請原地重算！','我條眉一皺，發現個數唔對！'],
+  attack:['煎餅飛盤到！算錯都唔好走！','以餅醒腦，掌櫃接住！'],
+  fastGood:['破案神速！我張紙都未拎出嚟！','剛報案就結案，掌櫃好身手！'],
+  slowGood:['巡邏都行完一圈，終於可以結案！','我張通緝令畫到一半，好彩你答啱！'],
+  retryGood:['重查一次就啱，這案正式結案！','肯翻查線索，果然找回正確答案！'],
+  nearMiss:['線索已齊，就差最後一環！','差少少就破案，再查一次尾數！'],
+  finalWrong:['先看解法補線索，下回再查此案！','這案記入練習簿，學懂再來破！']
+ },
+ 6:{
+  order:['貧道算到肚餓，算唔到個答案。','符紙帶齊，腦筋未熱，請掌櫃出手！'],
+  good:['靈驗！掌櫃比我道符更管用！','答案一通，鬍子都自動梳直！'],
+  bad:['卦象話唔啱，我條鬍子都打咗結！','天機未明，可能係尾數行錯路。'],
+  attack:['醒腦符一張，貼走你個瞌睡蟲！','符到！專治算盤魂遊太虛！'],
+  fastGood:['貧道未掐完手指，你就算完喇！','咒都未唸，答案已到，神速！'],
+  slowGood:['貧道條鬍子都打完辮，終於等到！','掐指掐到手攰，好彩此答案大吉！'],
+  retryGood:['改得好！糊塗符已經失效！','再算一次，卦象立刻轉晴！'],
+  nearMiss:['正解近在眼前，莫讓尾數化煙！','只差一小步，天機就要揭曉！'],
+  finalWrong:['解法就在眼前，比問卦更可靠！','先讀解法，貧道下次再來驗算。']
+ },
+ 7:{
+  order:['微辣、中辣、超辣，答案只准全啱！','先算清楚，我先決定加幾隻辣椒！'],
+  good:['夠勁！這答案可以配三碗飯！','算得爽快，我啲辣椒都跳起舞！'],
+  bad:['這條數唔夠準，倒係幾嗆喉！','未啱呀，辣椒已經叉住腰等緊！'],
+  attack:['迴旋小辣椒，替你醒醒神！','小辣椒出場！今次唔係加餸！'],
+  fastGood:['比辣椒上頭仲快，服你！','我連辣椒籽都未數完，你就得咗！'],
+  slowGood:['等到辣椒都變甜，好彩你答啱！','碗辣麵都冷靜晒，你終於算好喇！'],
+  retryGood:['改得漂亮，這次辣得有道理！','第二次就啱，越算越有火候！'],
+  nearMiss:['差少少火候，再調一調個數！','就啱喇，唔好畀最後一粒辣椒嗆到！'],
+  finalWrong:['睇清解法，下次再辣返一場！','呢題先收火，學識解法再起鑊！']
+ },
+ 8:{
+  order:['素包十個，唔係好多，係我數得清！','小僧放低木魚，等掌櫃開動腦筋。'],
+  good:['善哉！木魚都替你敲咗三下！','答案明明白白，包子圓圓滿滿！'],
+  bad:['我敲咗兩下木魚，個數都未醒。','這答案一出，小僧個肚都停咗叫。'],
+  attack:['咚！這一下幫你拍走瞌睡蟲！','木魚醒腦法，掌櫃留神！'],
+  fastGood:['木魚都未敲響，你就算好喇！','小僧剛合十，掌櫃已經全啱！'],
+  slowGood:['木魚敲完一首歌，終於開得飯！','等到包子都想打坐，好彩你答啱！'],
+  retryGood:['知錯再算，善哉善哉！','這次算通了，木魚都笑出聲！'],
+  nearMiss:['差一小步，就可以圓圓滿滿！','快到正解喇，再靜心睇清楚。'],
+  finalWrong:['先讀懂解法，明白比估中更好。','把呢題放入心裏，下次再算就識！']
+ },
+ 9:{
+  order:['鑼鼓未開，先請掌櫃算一算！','點一碟招牌菜，順便考考真功夫！'],
+  good:['好——！掌櫃值得加演一場！','答案一落，台下算盤齊齊喝彩！'],
+  bad:['哎呀呀，這個數唱走咗調！','我條水袖聽完，都打咗個結！'],
+  attack:['水袖翻飛，掃走你個糊塗數！','鑼鼓一響！掌櫃醒一醒神！'],
+  fastGood:['鑼都未敲，你就唱到大結局！','我才開腔，掌櫃已經交出佳答！'],
+  slowGood:['我唱到鬍鬚甩咗，終於等到正解！','一齣戲都落幕喇，好彩答案有彩！'],
+  retryGood:['好一個回身轉調，這次唱啱晒！','重唱一遍就準，台下掌聲再起！'],
+  nearMiss:['就差最後一拍，穩住個尾數！','離正調只差少少，再細聽一步！'],
+  finalWrong:['睇清解法，下次再上台唱個滿堂彩！','這一幕先收場，學懂再來演！']
+ },
+ 10:{
+  order:['望清楚先落筆，唔好同個答案鬥眼大！','今次唔使望我，望題目就得！'],
+  good:['呢個答案，有啲魔力喎！','認真起上嚟，果然識做！'],
+  bad:['個答案走咗去邊？叫佢返嚟先！','再望清楚，唔好畀尾數偷偷走甩！'],
+  attack:['算盤醒醒神！認真小小好唔好？','呢一下，幫你拍走個瞌睡蟲！'],
+  fastGood:['魔力橋！橋都未搭完你就答啱！','咁快就識做，個腦有魔力喎！'],
+  slowGood:['望題目望咗咁耐，終於望到個正解！','我等到魔力橋都起好喇，好彩你答啱！'],
+  retryGood:['今次認真咗，咁就啱啦！','改正咗就好，唔好再畀尾數走甩！'],
+  nearMiss:['差少少，睇清楚最後嗰步！','正解就喺隔籬，唔好行錯門口！'],
+  finalWrong:['收低呢題，睇完解法下次做返啱！','認真睇下解析，呢題下次唔好再失手。']
+ },
+ 11:{
+  order:['先睇清楚，唔好個答案未出就投降！','做過嘅題目嚟㗎，試下認唔認得！'],
+  good:['有溫習喎！呢個答案收貨！','算得好，個腦熱好身喇！'],
+  bad:['保底班門口吹緊風，快啲諗清楚！','題目好似認得你，你再認真睇下佢！'],
+  attack:['保底班飛扇到！快啲醒一醒個腦！','呢一下提醒你，尾數都要對清楚！'],
+  fastGood:['咁先係我的乖學生，快靚正！','我句說話都未講完，你就答啱喇！'],
+  slowGood:['我張保底班名單寫到一半，好彩你答啱！','等到把扇都攰喇，終於有正確答案！'],
+  retryGood:['肯改就好，咁先係我的乖學生！','再諗一次就啱，保底班名單暫時放低！'],
+  nearMiss:['差少少啫，再對一對最後嗰步！','已經行到正解門口，唔好轉身走！'],
+  finalWrong:['先睇清解法，唔識就識下書！','呢題記低，溫熟咗下次做返啱！']
+ },
+ 12:{
+  order:['笑完未？笑住都要識做呢題㗎！','今次試下邊個快：你個答案定我個笑聲？'],
+  good:['啱晒！笑住做都得喎！','好！呢個答案值得笑多兩聲！'],
+  bad:['笑住再諗下，個數仲未啱呀！','個答案去錯位，快啲叫佢返嚟！'],
+  attack:['醒腦一下！笑完都要睇清楚！','唉～個數未醒，我幫佢打個招呼！'],
+  fastGood:['係啦!又秒一題!我都未笑完呀！','快到連我個笑聲都追唔切！'],
+  slowGood:['笑到口都攰，終於等到你答啱！','呢題雖然未秒到，不過答啱就好！'],
+  retryGood:['係啦！改啱一題，識多一題！','今次就啱啦，再笑多兩聲先！'],
+  nearMiss:['差少少！個答案都差啲笑出嚟！','就啱喇，望清楚最後嗰步先笑！'],
+  finalWrong:['唔緊要，睇清解析，下次笑住做返啱！','呢題先記低，下次再嚟秒過！']
+ }
+};
+const lastCustomerLines=new Map();
+function answerWasClose(record){
+ if(!record||record.q.type!=='fill'||!record.inputs.length)return false;
+ const x=parseAnswer(record.inputs.at(-1)),y=parseAnswer(record.q.answer);if(!x||!y)return false;
+ const abs=n=>n<0n?-n:n,difference=abs(x.n*y.d-y.n*x.d);
+ const scale=abs(y.n*x.d)||x.d*y.d;
+ return difference>0n&&difference*10n<=scale;
 }
+function dialogueSituation(event,record,now=Date.now()){
+ if(!record||!['good','bad'].includes(event))return event;
+ if(event==='bad')return record.tries>=2?'finalWrong':answerWasClose(record)?'nearMiss':'bad';
+ if(record.tries>=2)return 'retryGood';
+ const end=record.end??now,waiting=end-(record.moodStartedAt??record.start),answering=end-record.start;
+ return waiting>=40000?'slowGood':answering<=7000?'fastGood':'good';
+}
+function customerDialogue(event,rng=Math.random,customer=currentCustomer(),record=run?run.records.at(-1):null){
+ const situation=dialogueSituation(event,record);
+ const key=customer.hidden&&event==='attack'?'bad':event;
+ const own=customer[key]??customer.bad??'',original=Array.isArray(own)?own:[own];
+ const extra=CUSTOMER_CHAT[customer.kind]?.[situation]||[];
+ let pool=situation===event?[...original,...extra]:extra.length?extra:original;
+ if(customer.hidden&&event==='order')pool=pool.concat(sharedTeacherQuestions);
+ pool=[...new Set(pool.filter(Boolean))];
+ const last=lastCustomerLines.get(customer.kind),fresh=pool.filter(line=>line!==last);
+ if(fresh.length)pool=fresh;
+ const line=pool[Math.min(pool.length-1,Math.floor(rng()*pool.length))]||'';
+ lastCustomerLines.set(customer.kind,line);return line;
+}
+
 function currentCustomer(){const record=run?run.records.at(-1):null;return customers[record?record.customerKind:0]||customers[0]}
 function safeSave(){try{localStorage.setItem('math-inn-settings-v1',JSON.stringify(config))}catch{}}
 function loadConfig(){try{const v=JSON.parse(localStorage.getItem('math-inn-settings-v1'));if(v&&typeof v==='object'){if(['count','time','survival'].includes(v.mode))config.mode=v.mode;if(Number.isInteger(v.count)&&v.count>=1)config.count=Math.min(v.count,maxQuestionCount());if([3,5,10].includes(v.minutes))config.minutes=v.minutes;for(const k of ['musicVolume','sfxVolume'])if(Number.isFinite(v[k]))config[k]=Math.max(0,Math.min(100,v[k]));if(v.audioDefaultsVersion===2)for(const k of ['musicMute','sfxMute'])if(typeof v[k]==='boolean')config[k]=v[k]}}catch{}config.musicMute=true;safeSave()}
